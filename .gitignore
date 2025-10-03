@@ -1,7 +1,6 @@
 # Runtime data directories - these are mapped from outside the container
 prometheus/data/*
 grafana/data/*
-plex/config/*
 dozzle/data/admin/
 
 # Environment files (should be created locally)

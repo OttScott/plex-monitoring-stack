@@ -1,10 +1,9 @@
 # Plex Monitoring Stack
 
-A comprehensive Docker Compose setup for a Plex media server with monitoring and management capabilities.
+A comprehensive Docker Compose setup for monitoring an externally installed Plex media server.
 
 ## Services
 
-- **Plex**: Media server with hardware transcoding support
 - **Prometheus**: Metrics collection and storage
 - **Grafana**: Visualization and dashboarding
 - **Dozzle**: Docker container log viewer
@@ -17,46 +16,54 @@ A comprehensive Docker Compose setup for a Plex media server with monitoring and
 ## Prerequisites
 
 - Docker and Docker Compose
-- NVIDIA GPU with Docker GPU support (for hardware transcoding)
+- **External Plex Media Server installation** (not included in this stack)
+- Plex authentication token for the exporter
 - Environment variables configured (see Setup section)
 
 ## Setup
 
-1. Clone this repository
-2. Copy the environment file templates and configure them:
+1. **Ensure Plex is installed externally**: This stack requires a Plex Media Server to be installed separately (either on the same host or accessible on your network). This stack will monitor that external Plex instance.
+
+2. Clone this repository
+
+3. Copy the environment file templates and configure them:
 
    ```bash
    # Create environment files for each service
-   cp plex/.env.example plex/.env
+   cp plex-prometheus-exporter/.env.example plex-prometheus-exporter/.env
    cp prometheus/.env.example prometheus/.env
    cp grafana/.env.example grafana/.env
    # ... configure other .env files as needed
    ```
 
-3. Set the required environment variables in your shell or create a `.env` file in the root:
+4. Configure the Plex Prometheus Exporter to connect to your external Plex server:
+
+   Edit `plex-prometheus-exporter/.env` and set:
+   - `PLEX_SERVER`: URL to your Plex server (e.g., `http://host.docker.internal:32400` for local installation, or `http://192.168.1.100:32400` for remote)
+   - `PLEX_TOKEN`: Your Plex authentication token ([how to find your token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
+
+5. Set the required environment variables in your shell or create a `.env` file in the root:
 
    ```bash
-   export MEDIA_PATH="/path/to/your/media"
    export MEDIA_SERVER_PATH="/path/to/this/directory"
    ```
 
-4. Create the data directories that will be mounted:
+6. Create the data directories that will be mounted:
 
    ```bash
    mkdir -p prometheus/data
    mkdir -p grafana/data
-   mkdir -p plex/config
    mkdir -p dozzle/data
    ```
 
-5. Configure user permissions for data directories:
+7. Configure user permissions for data directories:
 
    ```bash
    sudo chown -R $(id -u):$(id -g) prometheus/data
    sudo chown -R $(id -u):$(id -g) grafana/data
    ```
 
-6. Start the services:
+8. Start the services:
 
    ```bash
    docker compose up -d
@@ -64,7 +71,7 @@ A comprehensive Docker Compose setup for a Plex media server with monitoring and
 
 ## Access Points
 
-- **Plex**: <http://localhost:32400/web>
+- **Plex**: Access via your external Plex installation (typically <http://localhost:32400/web> if running on the same machine)
 - **Grafana**: <http://localhost:3000>
 - **Prometheus**: <http://localhost:9090>
 - **Dozzle**: <http://localhost:8080>
@@ -86,12 +93,13 @@ The following directories contain persistent data and are mounted from the host:
 
 - `prometheus/data/`: Time series data
 - `grafana/data/`: Dashboards, users, and settings
-- `plex/config/`: Plex configuration and metadata
 - `dozzle/data/`: Log viewer configuration
 
 ## Notes
 
-- GPU support is configured for NVIDIA cards
+- **Plex is NOT included in this stack** - you must have Plex installed separately
+- The Plex Prometheus Exporter connects to your external Plex server to collect metrics
+- GPU support is configured for NVIDIA cards (for monitoring GPU usage)
 - Prometheus retains data for 30 days
 - All services are configured with security best practices (no-new-privileges)
 - Services are set to restart unless explicitly stopped

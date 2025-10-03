@@ -1,23 +1,4 @@
 services:
-  plex:
-    container_name: plex
-    image: plexinc/pms-docker:plexpass
-    pull_policy: always
-    restart: unless-stopped
-    env_file:
-      - ./plex/.env
-    gpus: all
-    ports:
-      - 32400:32400/tcp
-    security_opt:
-      - no-new-privileges:true
-    tmpfs:
-      - /transcode:size=8G
-    volumes:
-      - ${MEDIA_SERVER_PATH}/plex/config:/config      
-      - ${MEDIA_PATH}/movies:/movies:ro
-      - ${MEDIA_PATH}/recorded_tv:/recorded_tv
-
   dozzle:
     container_name: dozzle
     image: amir20/dozzle:latest
@@ -41,8 +22,8 @@ services:
     image: ghcr.io/timothystewart6/prometheus-plex-exporter:latest
     pull_policy: always
     restart: unless-stopped
-    depends_on:
-      - plex
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Allows access to host network from container
     env_file:
       - ./plex-prometheus-exporter/.env
     # ports:
